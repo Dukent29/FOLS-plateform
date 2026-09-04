@@ -1,0 +1,5 @@
+import Link from "next/link";
+
+export function PublicFooter() {
+  return <footer className="public-footer"><div className="container footer-grid"><div><div className="brand footer-brand"><span className="brand-mark">F</span><span><strong>FOLS</strong><small>Security Group</small></span></div><p>Votre sécurité est notre priorité. Professionnalisme, expérience, intégrité et discrétion.</p></div><div><strong>Contact</strong><p><a href="tel:+33788132645">07 88 13 26 45</a> · 7j/7, 24h/24<br/><a href="tel:+33442071349">04 42 07 13 49</a><br/><a href="mailto:contact@folssecuritygroup.fr">contact@folssecuritygroup.fr</a></p></div><div><strong>Accès</strong><p><Link href="/demande-devis">Demander un devis</Link><br/><Link href="/login">Back-office</Link><br/>9 rue du Commandant Letellier<br/>27000 Évreux</p></div></div><div className="container legal-note">FOLS Security Group · SIRET 888 385 721 00012 · Autorisation d’exercer : AUT-027-2119-11-24-20200757763. L’autorisation d’exercer ne confère aucune prérogative de puissance publique.</div></footer>;
+}
