@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "@/lib/auth";
+import { requireApiUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { missionReference } from "@/lib/format";
 
 export async function POST(request: Request) {
-  await requireUser(); const form = await request.formData();
+  const user = await requireApiUser();
+  if (user instanceof NextResponse) return user;
+  const form = await request.formData();
   const title = String(form.get("title") ?? "").trim(); const location = String(form.get("location") ?? "").trim(); const serviceLabel = String(form.get("serviceLabel") ?? "").trim();
   const startDate = String(form.get("startDate") ?? ""); const startTime = String(form.get("startTime") ?? "");
   const endDate = String(form.get("endDate") ?? ""); const endTime = String(form.get("endTime") ?? "");

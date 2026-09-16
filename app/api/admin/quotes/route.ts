@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "@/lib/auth";
+import { requireApiUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { quoteReference } from "@/lib/format";
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireApiUser();
+  if (user instanceof NextResponse) return user;
   const form = await request.formData();
 
   const leadId = String(form.get("leadId") ?? "") || null;

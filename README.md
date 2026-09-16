@@ -15,8 +15,8 @@ Full-stack MVP for **FOLS SECURITY GROUP**: public acquisition website + interna
 - Success reference returned to the visitor
 
 ### Back-office
-- Secure login with HttpOnly session cookie
-- Password hashing with Node.js `scrypt`
+- Clerk sign-in, sign-up, account menu, and managed sessions
+- Server-enforced staff access using Clerk public metadata roles
 - Dashboard KPIs
 - Prospect list, search and filters
 - Prospect detail
@@ -68,7 +68,29 @@ Public visitor
 cp .env.example .env
 ```
 
-Change at least `ADMIN_PASSWORD` before using the project outside local development.
+`DATABASE_URL` and the mail settings remain in `.env`. Authentication now uses Clerk; `ADMIN_EMAIL` and `ADMIN_PASSWORD` no longer control dashboard login.
+
+Connect the existing Clerk application using the CLI (no keys need to be shared in chat):
+
+```bash
+npx -y clerk@latest auth login
+npx -y clerk@latest init
+npx -y clerk@latest doctor
+```
+
+The CLI writes `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` locally. Keep environment files untracked. Restart the app after changing credentials. Use the same Clerk application and instance where your users were created.
+
+### Authorize staff
+
+In the Clerk Dashboard, open **Users**, select the staff user, and set **Public metadata** to include:
+
+```json
+{ "role": "admin" }
+```
+
+The supported roles are `admin` and `manager`; both can use the current back office. Preserve other metadata fields when editing. Roles are read on the server from Clerk's Backend API, so no custom session-token template is needed. User-editable unsafe metadata is never used for authorization. Accounts with no recognized staff role see an access-denied page; signing up alone does not grant dashboard access.
+
+Before deployment, configure Clerk's production instance and domain. Development and production users are separate. A VPN-hosted app still needs internet access to Clerk.
 
 ## 3. Start PostgreSQL
 
@@ -96,18 +118,13 @@ npm run db:generate
 npm run db:migrate -- --name init
 ```
 
-## 7. Seed admin + services
+## 7. Seed services + company settings
 
 ```bash
 npm run db:seed
 ```
 
-Default values come from `.env`:
-
-```text
-ADMIN_EMAIL
-ADMIN_PASSWORD
-```
+This seeds business reference data only. Create users and assign staff roles in Clerk. Existing database users and sessions are preserved but are no longer accepted for authentication.
 
 ## 8. Run the application
 
@@ -119,7 +136,9 @@ Open:
 
 - Public website: http://localhost:3000
 - Quote request: http://localhost:3000/demande-devis
-- Back-office: http://localhost:3000/login
+- Sign-in: http://localhost:3000/sign-in (`/login` redirects here)
+- Sign-up: http://localhost:3000/sign-up
+- Back-office: http://localhost:3000/admin
 
 ## Test the complete flow
 
@@ -155,7 +174,7 @@ This repository is a **serious functional MVP**, not a finished ERP. Before real
 
 ## Security design
 
-The admin area is not protected by frontend hiding. Server components call `requireUser()`, which validates an HttpOnly session against the database. Passwords are stored as salted `scrypt` hashes. Session tokens are random; only their SHA-256 hashes are stored in PostgreSQL.
+Clerk validates sessions. `proxy.ts` protects `/admin` and `/api/admin` before requests reach the dashboard. The admin layout also calls `requireUser()`; every admin API handler calls `requireApiUser()` before accessing business data. The server checks Clerk public metadata for an approved staff role. APIs return 401 for unsigned users and 403 for users without a staff role. The old password login/logout endpoints return 410 and cannot create sessions.
 
 ## Data model
 

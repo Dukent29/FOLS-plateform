@@ -1,54 +1,30 @@
-import { cookies } from "next/headers";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
-import { hashToken, newSessionToken } from "@/lib/security";
-
-const COOKIE_NAME = "__fols_session";
-const SESSION_DAYS = 7;
-
-export async function createSession(userId: string) {
-  const token = newSessionToken();
-  const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
-
-  await db.session.create({
-    data: { tokenHash: hashToken(token), userId, expiresAt },
-  });
-
-  const store = await cookies();
-  store.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    expires: expiresAt,
-  });
-}
-
-export async function destroySession() {
-  const store = await cookies();
-  const token = store.get(COOKIE_NAME)?.value;
-  if (token) {
-    await db.session.deleteMany({ where: { tokenHash: hashToken(token) } });
-  }
-  store.delete(COOKIE_NAME);
-}
+import { NextResponse } from "next/server";
+import { getStaffRole } from "@/lib/staff-role";
 
 export async function getCurrentUser() {
-  const store = await cookies();
-  const token = store.get(COOKIE_NAME)?.value;
-  if (!token) return null;
-
-  const session = await db.session.findUnique({
-    where: { tokenHash: hashToken(token) },
-    include: { user: true },
-  });
-
-  if (!session || session.expiresAt <= new Date()) return null;
-  return session.user;
+  const { userId } = await auth();
+  if (!userId) return null;
+  const user = await currentUser();
+  if (!user) return null;
+  return {
+    id: user.id,
+    name: user.fullName || user.primaryEmailAddress?.emailAddress || "Équipe FOLS",
+    role: getStaffRole(user.publicMetadata),
+  };
 }
 
 export async function requireUser() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/sign-in");
+  if (!user.role) redirect("/access-denied");
+  return user;
+}
+
+export async function requireApiUser() {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user.role) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   return user;
 }

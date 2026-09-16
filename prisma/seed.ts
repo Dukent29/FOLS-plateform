@@ -1,17 +1,12 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
-import { hashPassword } from "../lib/security";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL missing");
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 
 async function main() {
-  const email = process.env.ADMIN_EMAIL ?? "admin@folssecuritygroup.com";
-  const password = process.env.ADMIN_PASSWORD ?? "ChangeMe_2026!";
-  await db.user.upsert({ where: { email }, update: {}, create: { email, name: "Administrateur FOLS", role: "ADMIN", passwordHash: await hashPassword(password) } });
-
   const services = [
     ["APS", "aps", "Agents de prévention et de sécurité pour domiciles, entreprises et sites événementiels."],
     ["Événementiel & salon", "evenementiel-salon", "Sécurité des biens et des personnes lors de salons et événements."],
@@ -28,7 +23,7 @@ async function main() {
     legal_notice: "L’autorisation d’exercer ne confère aucune prérogative de puissance publique à l’entreprise ou aux personnes qui en bénéficient. Article 612-14 du code de la sécurité intérieure.",
   };
   for (const [key, value] of Object.entries(settings)) await db.appSetting.upsert({ where: { key }, update: { value }, create: { key, value } });
-  console.log(`Seed complete. Admin: ${email}`);
+  console.log("Seed complete. Manage staff accounts and roles in Clerk.");
 }
 
 main().finally(() => db.$disconnect());
