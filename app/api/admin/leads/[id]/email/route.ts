@@ -2,15 +2,23 @@ import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { sendCommercialEmail } from "@/lib/mail";
+import { redirectToPath } from "@/lib/redirect";
+import { formText } from "@/lib/input-validation";
+import { isSafeId, rejectCrossSiteRequest } from "@/lib/request-security";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireApiUser();
   if (user instanceof NextResponse) return user;
+  const crossSiteResponse = rejectCrossSiteRequest(request);
+  if (crossSiteResponse) return crossSiteResponse;
   const { id } = await params;
+  if (!isSafeId(id)) return new NextResponse("Invalid lead", { status: 422 });
   const form = await request.formData();
-  const subject = String(form.get("subject") ?? "").trim();
-  const message = String(form.get("message") ?? "").trim();
-  if (!subject || !message) return new NextResponse("Missing email content", { status: 422 });
+  const subject = formText(form, "subject", 200);
+  const message = formText(form, "message", 10_000);
+  if (!subject || !message || /[\r\n]/.test(subject)) {
+    return new NextResponse("Missing or invalid email content", { status: 422 });
+  }
 
   const lead = await db.lead.findUnique({ where: { id }, include: { contact: true } });
   if (!lead) return new NextResponse("Lead not found", { status: 404 });
@@ -27,5 +35,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   await db.communication.create({
     data: { leadId: id, type: "EMAIL", content: `Email envoyé — ${subject}\n\n${message}`, createdBy: user.name },
   });
-  return NextResponse.redirect(new URL(`/admin/leads/${id}`, request.url), 303);
+  return redirectToPath(`/admin/leads/${id}`);
 }

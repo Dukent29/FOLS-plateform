@@ -1,30 +1,95 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { leadReference } from "@/lib/format";
-
-function text(value: unknown) { return typeof value === "string" ? value.trim() : ""; }
+import { isEmail, isIsoDate, isTime, objectText } from "@/lib/input-validation";
+import { consumeRateLimit } from "@/lib/rate-limit";
+import {
+  readLimitedJson,
+  rejectCrossSiteRequest,
+  requestClientKey,
+  RequestBodyError,
+} from "@/lib/request-security";
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  const crossSiteResponse = rejectCrossSiteRequest(request);
+  if (crossSiteResponse) return crossSiteResponse;
 
-  const companyName = text(body.company);
-  const contactName = text(body.contactName);
-  const email = text(body.email).toLowerCase();
-  const phone = text(body.phone);
-  const city = text(body.city);
-  const description = text(body.description);
-  const consent = text(body.consent);
+  const rateLimit = consumeRateLimit(`public-lead:${requestClientKey(request)}`, 5, 15 * 60_000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Try again later." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } },
+    );
+  }
 
-  if (!companyName || !contactName || !email.includes("@") || !phone || !city || !description || consent !== "yes") {
+  let parsedBody: unknown;
+  try {
+    parsedBody = await readLimitedJson(request);
+  } catch (error) {
+    if (error instanceof RequestBodyError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    throw error;
+  }
+
+  if (!parsedBody || typeof parsedBody !== "object" || Array.isArray(parsedBody)) {
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  }
+  const body = parsedBody as Record<string, unknown>;
+
+  const honeypot = objectText(body, "website", 200);
+  if (honeypot) return NextResponse.json({ ok: true, reference: "REQUEST_RECEIVED" }, { status: 201 });
+
+  const companyName = objectText(body, "company", 120);
+  const contactName = objectText(body, "contactName", 120);
+  const rawEmail = objectText(body, "email", 254);
+  const email = rawEmail?.toLowerCase() ?? null;
+  const phone = objectText(body, "phone", 32);
+  const city = objectText(body, "city", 120);
+  const description = objectText(body, "description", 4_000);
+  const consent = objectText(body, "consent", 8);
+
+  if (!companyName || !contactName || !email || !isEmail(email) || !phone || !city || !description || consent !== "yes") {
     return NextResponse.json({ error: "Missing or invalid fields" }, { status: 422 });
   }
 
-  const serviceId = text(body.serviceId);
-  const service = serviceId && serviceId !== "other" ? await db.service.findUnique({ where: { id: serviceId } }) : null;
-  const desiredStart = text(body.desiredStart) ? new Date(`${text(body.desiredStart)}T12:00:00`) : null;
-  const guardCountRaw = Number(text(body.guardCount));
-  const guardCount = Number.isInteger(guardCountRaw) && guardCountRaw > 0 ? guardCountRaw : null;
+  const serviceId = objectText(body, "serviceId", 64);
+  if (serviceId === null) return NextResponse.json({ error: "Invalid service" }, { status: 422 });
+  const service = serviceId && serviceId !== "other"
+    ? await db.service.findFirst({ where: { id: serviceId, active: true } })
+    : null;
+  if (serviceId && serviceId !== "other" && !service) {
+    return NextResponse.json({ error: "Invalid service" }, { status: 422 });
+  }
+
+  const desiredStartText = objectText(body, "desiredStart", 10);
+  if (desiredStartText === null || (desiredStartText && !isIsoDate(desiredStartText))) {
+    return NextResponse.json({ error: "Invalid date" }, { status: 422 });
+  }
+  const desiredStart = desiredStartText ? new Date(`${desiredStartText}T12:00:00`) : null;
+
+  const startTime = objectText(body, "startTime", 5);
+  const endTime = objectText(body, "endTime", 5);
+  if (startTime === null || endTime === null || (startTime && !isTime(startTime)) || (endTime && !isTime(endTime))) {
+    return NextResponse.json({ error: "Invalid time" }, { status: 422 });
+  }
+  const timeRange = startTime && endTime ? `${startTime} → ${endTime}` : startTime || endTime || null;
+
+  const guardCountText = objectText(body, "guardCount", 4);
+  const guardCountRaw = guardCountText ? Number(guardCountText) : null;
+  const guardCount = guardCountRaw !== null && Number.isInteger(guardCountRaw) && guardCountRaw >= 1 && guardCountRaw <= 500
+    ? guardCountRaw
+    : null;
+  if (guardCountText && guardCount === null) {
+    return NextResponse.json({ error: "Invalid guard count" }, { status: 422 });
+  }
+
+  const siteType = objectText(body, "siteType", 120);
+  const duration = objectText(body, "duration", 120);
+  const urgency = objectText(body, "urgency", 16);
+  if (siteType === null || duration === null || !urgency || !["URGENT", "SOON", "NORMAL"].includes(urgency)) {
+    return NextResponse.json({ error: "Invalid fields" }, { status: 422 });
+  }
 
   const company = await db.company.findFirst({ where: { name: { equals: companyName, mode: "insensitive" } } })
     ?? await db.company.create({ data: { name: companyName, city } });
@@ -36,9 +101,9 @@ export async function POST(request: Request) {
     data: {
       reference: leadReference(), companyId: company.id, contactId: contact.id,
       serviceId: service?.id ?? null, serviceLabel: service?.name ?? "Besoin à définir",
-      siteType: text(body.siteType) || null, city, desiredStart,
-      timeRange: text(body.timeRange) || null, duration: text(body.duration) || null,
-      guardCount, urgency: text(body.urgency) || "NORMAL", description,
+      siteType: siteType || null, city, desiredStart,
+      timeRange, duration: duration || null,
+      guardCount, urgency, description,
       communications: { create: { type: "SYSTEM", content: "Demande créée depuis le site public." } },
     },
   });

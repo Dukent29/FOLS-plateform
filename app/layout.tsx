@@ -12,6 +12,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="fr">
       <body suppressHydrationWarning>
         <ClerkProvider
+          dynamic
           signInUrl="/sign-in"
           signUpUrl="/sign-up"
           signInFallbackRedirectUrl="/admin"

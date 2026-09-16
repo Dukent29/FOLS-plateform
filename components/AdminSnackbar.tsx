@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Notice = { message: string; tone: "success" | "error" };
 const STORAGE_KEY = "fols-admin-snackbar";
@@ -17,6 +18,7 @@ function successMessage(action: string) {
 }
 
 export function AdminSnackbar() {
+  const router = useRouter();
   const [notice, setNotice] = useState<Notice | null>(null);
 
   useEffect(() => {
@@ -29,13 +31,18 @@ export function AdminSnackbar() {
 
     async function handleSubmit(event: SubmitEvent) {
       const form = event.target;
-      if (!(form instanceof HTMLFormElement) || !form.action.includes("/api/admin/")) return;
+      if (!(form instanceof HTMLFormElement)) return;
+      const action = new URL(form.action, window.location.origin);
+      if (action.origin !== window.location.origin || !action.pathname.startsWith("/api/admin/")) return;
       event.preventDefault();
       try {
-        const response = await fetch(form.action, { method: form.method || "POST", body: new FormData(form) });
+        const response = await fetch(`${action.pathname}${action.search}`, { method: form.method || "POST", body: new FormData(form) });
         if (!response.ok) throw new Error(await response.text());
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ message: successMessage(form.action), tone: "success" } satisfies Notice));
-        window.location.assign(response.url);
+        const destination = new URL(response.url, window.location.origin);
+        if (destination.origin !== window.location.origin) throw new Error("Cross-origin redirect blocked");
+        setNotice({ message: successMessage(action.pathname), tone: "success" });
+        router.push(`${destination.pathname}${destination.search}${destination.hash}`);
+        router.refresh();
       } catch {
         setNotice({ message: "L’action n’a pas pu être enregistrée. Réessayez.", tone: "error" });
       }
@@ -46,7 +53,7 @@ export function AdminSnackbar() {
       if (restoreTimeout) window.clearTimeout(restoreTimeout);
       document.removeEventListener("submit", handleSubmit, true);
     };
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!notice) return;
