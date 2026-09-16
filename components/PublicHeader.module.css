@@ -1,0 +1,14 @@
+.header{position:sticky;top:0;z-index:40;background:rgba(12,12,29,.94);border-bottom:1px solid #ffffff12;backdrop-filter:blur(18px);transition:box-shadow .25s}
+.header[data-scrolled=true]{box-shadow:0 8px 30px #05051135}
+.inner{width:min(1240px,calc(100% - 64px));height:86px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:30px}
+.brand{display:flex;align-items:center;gap:12px;color:#fff!important}
+.mark{position:relative;display:grid;place-items:center;width:40px;height:43px;background:#8376fa;border-radius:10px 10px 10px 2px;font-size:30px;font-weight:900;line-height:1;color:#fff;overflow:hidden}
+.mark>span{position:absolute;bottom:0;right:0;width:13px;height:13px;background:#b7afff;border-radius:9px 0 0 0}
+.brand>span:last-child{display:grid;gap:4px}.brand strong{font-size:21px;letter-spacing:.14em}.brand small{font-size:8px;letter-spacing:.25em;color:#b9b7cb}
+.nav{display:flex;align-items:center;gap:30px;font-size:13px;font-weight:600;color:#c9c7d9}.nav>a{transition:color .2s}.nav>a:hover{color:#b7afff}
+.nav .contact{display:flex;align-items:center;gap:22px;padding:13px 18px;border:1px solid #8e82f87a;border-radius:7px;color:#fff;background:#8376fa12}.contact>span{font-size:22px;transition:transform .2s}.contact:hover>span{transform:translate(2px,-2px)}
+.toggle{display:none;background:none;border:1px solid #ffffff30;border-radius:7px;width:44px;height:44px;color:#fff;cursor:pointer}.toggle span{display:block;height:2px;width:20px;margin:5px auto;background:currentColor;transition:transform .2s}
+.skip{position:absolute;left:20px;top:-100px;padding:14px;background:#fff;color:#16142b;border-radius:4px}.skip:focus{top:10px}
+.header a:focus-visible,.header button:focus-visible{outline:3px solid #b7afff;outline-offset:5px}
+@media(max-width:850px){.inner{width:calc(100% - 40px);height:74px}.toggle{display:block}.nav{display:none;position:absolute;top:74px;left:0;right:0;padding:16px 20px 24px;background:#14132b;border-bottom:1px solid #ffffff20;box-shadow:0 20px 30px #0004}.nav[data-open=true]{display:grid;gap:0}.nav>a{padding:17px 10px}.nav .contact{margin-top:10px;justify-content:space-between}.toggle[aria-expanded=true] span:first-child{transform:translateY(3.5px) rotate(45deg)}.toggle[aria-expanded=true] span:last-child{transform:translateY(-3.5px) rotate(-45deg)}}
+@media(prefers-reduced-motion:reduce){.header,.header *{transition:none!important}}
