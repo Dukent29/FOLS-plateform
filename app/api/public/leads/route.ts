@@ -55,6 +55,8 @@ export async function POST(request: Request) {
 
   const serviceId = objectText(body, "serviceId", 64);
   if (serviceId === null) return NextResponse.json({ error: "Invalid service" }, { status: 422 });
+  const requestedServiceLabel = objectText(body, "serviceLabel", 120);
+  if (requestedServiceLabel === null) return NextResponse.json({ error: "Invalid service label" }, { status: 422 });
   const service = serviceId && serviceId !== "other"
     ? await db.service.findFirst({ where: { id: serviceId, active: true } })
     : null;
@@ -100,7 +102,7 @@ export async function POST(request: Request) {
   const lead = await db.lead.create({
     data: {
       reference: leadReference(), companyId: company.id, contactId: contact.id,
-      serviceId: service?.id ?? null, serviceLabel: service?.name ?? "Besoin à définir",
+      serviceId: service?.id ?? null, serviceLabel: (service?.name ?? requestedServiceLabel) || "Besoin à définir",
       siteType: siteType || null, city, desiredStart,
       timeRange, duration: duration || null,
       guardCount, urgency, description,

@@ -5,3 +5,5 @@ node_modules
 generated
 *.log
 .DS_Store
+AGENTS.md
+CLAUDE.md

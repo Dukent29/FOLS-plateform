@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import GradientWaves from "./GradientWaves";
 import styles from "./LandingExperience.module.css";
 
 type IconName = "shield" | "people" | "dog" | "alarm" | "fire" | "arrow" | "check";
@@ -79,6 +80,7 @@ export function LandingExperience() {
   return (
     <main id="main-content" ref={root} className={styles.page}>
       <section className={styles.hero} aria-labelledby="hero-title">
+        <GradientWaves className={styles.heroWaves} horizonColor="#211346" waveColor="#7554ef" crestColor="#f0ebff" speed={0.42} amplitude={2.45} waveScale={0.6} waveRatio={0.9} swell={35} turbulence={20} tilt={1.11} zoom={1} height={5.5} fogDepth={19} detail="medium" brightness={1} opacity={0.9} mouseInteraction parallaxStrength={0.42} grain grainIntensity={0.04} />
         <div className={styles.heroGrid}>
           <div className={styles.heroCopy}>
             <div className={styles.eyebrow}><span className={styles.dot} /> LA SÉCURITÉ, UNE QUESTION DE CONFIANCE</div>
