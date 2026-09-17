@@ -1,0 +1,41 @@
+.aurora-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 12% 8%, #7cff6755, transparent 55%),
+    radial-gradient(ellipse at 58% 18%, #b497cf66, transparent 58%),
+    radial-gradient(ellipse at 96% 5%, #5227ff88, transparent 65%);
+}
+.aurora-canvas { position: absolute; inset: 0; }
+.aurora-canvas canvas { display: block; width: 100%; height: 100%; }
+.aurora-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #15102466, #15102488 58%, #15102422);
+  pointer-events: none;
+}
+.aurora-pause {
+  position: absolute;
+  z-index: 2;
+  bottom: 14px;
+  right: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 12px;
+  border: 0;
+  background: transparent;
+  color: #f5efff;
+  font-size: 13px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.aurora-pause:hover { color: #d8baff; }
+.aurora-pause:focus-visible { outline: 3px solid #d8baff; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .aurora-pause { display: none; }
+}
