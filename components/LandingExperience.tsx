@@ -45,7 +45,7 @@ const questions = [
   ["Comment obtenir un devis ?", "Utilisez notre formulaire pour préciser votre site, les dates envisagées et votre besoin. Ces informations permettent à notre équipe d’étudier votre demande et de préparer une proposition adaptée."],
   ["Je ne sais pas quel service choisir. Que faire ?", "Vous n’avez pas besoin de connaître le nom du métier. Décrivez simplement votre situation dans le formulaire en choisissant « Autre / à définir », ou contactez-nous par téléphone pour en parler."],
   ["Puis-je demander une prestation ponctuelle ?", "Oui. Présentez-nous votre besoin ponctuel ou régulier, avec les dates et horaires souhaités. La prestation sera étudiée selon vos contraintes et les disponibilités de l’équipe."],
-  ["Comment vous joindre ?", "Vous pouvez nous contacter au 07 88 13 26 45, au 04 42 07 13 49 ou par email à contact@folssecuritygroup.fr. Notre équipe est à votre écoute 7j/7 et 24h/24."],
+  ["Comment vous joindre ?", "Vous pouvez nous contacter au 07-59-83-48-26 ou par email à contact@folssecuritygroup.fr. Notre équipe est à votre écoute 7j/7 et 24h/24."],
 ];
 
 export function LandingExperience() {
