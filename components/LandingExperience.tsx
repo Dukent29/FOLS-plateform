@@ -181,7 +181,7 @@ export function LandingExperience() {
 
       <section id="secteurs" className={styles.sectors} aria-labelledby="sectors-title">
         <div className={`${styles.container} ${styles.sectorGrid}`}>
-          <div className={styles.sectorIntro} data-reveal><span className={styles.kicker}>02 / VOTRE ENVIRONNEMENT</span><h2 id="sectors-title">Votre réalité.<br /><em>Notre terrain.</em></h2><p>Un lieu n’est jamais tout à fait comme un autre. Nous prenons le temps de comprendre le vôtre.</p><a href="tel:+33788132645" className={styles.phoneLink}>Échangeons de vive voix <span>07 88 13 26 45 ↗</span></a></div>
+          <div className={styles.sectorIntro} data-reveal><span className={styles.kicker}>02 / VOTRE ENVIRONNEMENT</span><h2 id="sectors-title">Votre réalité.<br /><em>Notre terrain.</em></h2><p>Un lieu n’est jamais tout à fait comme un autre. Nous prenons le temps de comprendre le vôtre.</p><a href="tel:+33759834826" className={styles.phoneLink}>Échangeons de vive voix <span>07 59 83 48 26 ↗</span></a></div>
           <div className={styles.sectorList} data-reveal>{sectors.map((item, index) => <article className={styles.sectorItem} data-open={sector === index} key={item.title}>
             <h3><button type="button" aria-expanded={sector === index} aria-controls={`sector-panel-${index}`} onClick={() => setSector(sector === index ? null : index)}><span>0{index + 1}</span>{item.title}<span className={styles.plus} aria-hidden="true">{sector === index ? "−" : "+"}</span></button></h3>
             <div id={`sector-panel-${index}`} hidden={sector !== index} className={styles.sectorPanel}><p>{item.description}</p><div className={styles.tags}>{item.tags.map(tag => <span key={tag}>{tag}</span>)}</div><Link href="/demande-devis">Parlons de ce projet <span aria-hidden="true">↗</span></Link></div>
@@ -211,7 +211,7 @@ export function LandingExperience() {
       <section className={styles.contactSection} aria-labelledby="contact-title">
         <div className={`${styles.container} ${styles.contactCard}`} data-reveal>
           <div><span className={styles.kicker}>LE PREMIER PAS, C’EST UN ÉCHANGE.</span><h2 id="contact-title">Et si on parlait<br />de votre <em>tranquillité ?</em></h2><p>Décrivez-nous votre projet. Construisons ensemble la réponse adaptée.</p></div>
-          <div className={styles.contactActions}><Link href="/demande-devis" className={styles.primary}>Demander un devis <Icon name="arrow" /></Link><a href="tel:+33788132645">Ou appelez-nous au <strong>07 88 13 26 45</strong></a><span>À votre écoute · 7j/7 et 24h/24</span></div>
+          <div className={styles.contactActions}><Link href="/demande-devis" className={styles.primary}>Demander un devis <Icon name="arrow" /></Link><a href="tel:+33759834826">Ou appelez-nous au <strong>07 59 83 48 26</strong></a><span>À votre écoute · 7j/7 et 24h/24</span></div>
         </div>
       </section>
     </main>

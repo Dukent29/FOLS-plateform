@@ -21,7 +21,7 @@ export default clerkMiddleware(async (auth, request) => {
   const user = await client.users.getUser(userId);
   if (!getStaffRole(user.publicMetadata)) {
     if (isAdminApi(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    return new NextResponse(null, { status: 307, headers: { Location: "/access-denied" } });
+    return NextResponse.redirect(new URL("/access-denied", request.url));
   }
 }, {
   contentSecurityPolicy: { strict: true },
